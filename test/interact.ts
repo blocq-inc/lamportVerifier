@@ -142,7 +142,7 @@ const contract = new ethers.Contract(c_address, abi, signer);
     //     gasPrice: ethers.utils.parseUnits('60', 'gwei'),
     // })
 
-    kt.save()
+    kt.save(true)
 
     // return
     const message = `Hello, World! ${loremIpsum()}`
@@ -156,7 +156,7 @@ const contract = new ethers.Contract(c_address, abi, signer);
 
     // broadcast message 
     const tx = await contract.broadcast(message, newkeys.pub, sig.map(s => `0x${s}`), {
-        gasPrice: ethers.utils.parseUnits('60', 'gwei'),
+        gasPrice: ethers.utils.parseUnits('35', 'gwei'),
     })
     console.log("broadcast tx", tx)
 

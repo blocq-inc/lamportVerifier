@@ -11,7 +11,8 @@ const pubFromPri = (pri: [string, string][]) => pri.map(p => ([hash_b(p[0]), has
 export {hash, hash_b, pubFromPri}
 
 export function mk_key_pair(): KeyPair {
-    const mk_rand_num = () => randomBytes(32).toString('hex')
+    // const mk_rand_num = () => randomBytes(32).toString('hex')
+    const mk_rand_num = () => hash(randomBytes(32).toString('hex')).substring(2) // hash the random number once to get the private key (then forget the original random number) and twice to get the public key... this helps if there is an issue with the random number generator
     const mk_RandPair = () => ([mk_rand_num(), mk_rand_num()] as RandPair)
     const mk_pri_key = () => Array.from({ length: 256 }, () => mk_RandPair()) as RandPair[]
 
