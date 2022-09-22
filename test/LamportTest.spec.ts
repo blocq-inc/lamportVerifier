@@ -188,7 +188,9 @@ contract('LamportTest test', (accounts: string[]) => {
     it.only('death by ten thousand hashes.', async () => {
         const _contract: ethers.Contract = await LamportTest.new()
         console.log(`contract address: ${_contract.address}`)
-        const result = await _contract.death_by_ten_thousand_hashes('0x123456789')         
+        await _contract.death_by_ten_thousand_hashes('0x123456789', 1_000)         
+        await _contract.death_by_ten_thousand_hashes('0x123456789', 10_000)         
+        await _contract.death_by_ten_thousand_hashes('0x123456789', 20_000)         
     })
 
 })

@@ -65,19 +65,19 @@ contract LamportTest {
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    event DeathByTenThousandHashes(bytes32 indexed deathhash);
+    event DeathByTenThousandHashes(bytes32 indexed deathhash, uint256 indexed count);
 
-    function death_by_ten_thousand_hashes(bytes32 initialValue)
+    function death_by_ten_thousand_hashes(bytes32 initialValue, uint256 count )
         public
         returns (bytes32)
     {
         unchecked {
             bytes32 hash = initialValue;
-            for (uint256 i = 0; i < 10_000; i++) {
+            for (uint256 i = 0; i < count; i++) {
                 hash = keccak256(abi.encodePacked(hash));
             }
 
-            emit DeathByTenThousandHashes(hash);
+            emit DeathByTenThousandHashes(hash, count);
             return hash;
         }
     }

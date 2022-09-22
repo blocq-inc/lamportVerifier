@@ -1,5 +1,5 @@
 # DELETE JAVASCRIPT FILE
-rm javascript_build/LamportTest.spec.js 
+rm javascript_build/test/LamportTest.spec.js 
 
 # COMPILE TYPECRIPT FILE
 npx tsc 
