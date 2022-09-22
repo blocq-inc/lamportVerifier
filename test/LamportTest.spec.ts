@@ -184,6 +184,13 @@ contract('LamportTest test', (accounts: string[]) => {
         console.log(`tipjar_2: ${tipjar_2}`)
         expect(tipjar_2).to.equal(wallet_newTipJar.address)
     })
+
+    it.only('death by ten thousand hashes.', async () => {
+        const _contract: ethers.Contract = await LamportTest.new()
+        console.log(`contract address: ${_contract.address}`)
+        const result = await _contract.death_by_ten_thousand_hashes('0x123456789')         
+    })
+
 })
 
 
