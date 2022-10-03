@@ -6,9 +6,10 @@ import { loremIpsum } from "lorem-ipsum"
 import * as dotenv from 'dotenv'
 dotenv.config()
 // const pri = fs.readFileSync(".secret", "utf8")
-const pri = process.env.PRIVATE_KEY_2
+const pri = process.env.PK_PAULI_GROUP_TEST
 // const c_address = `0xCb3F2F2F5ca825cC4cB01F535763Fa864aC35335`
-const c_address = `0x9684093070A02Ea5AFb57782C04d37d26C202C52`
+// const c_address = `0x9684093070A02Ea5AFb57782C04d37d26C202C52`
+const c_address = `0x22FeD2981Ed73e4FD21c7BFE3921264200B49dC3`
 
 const abi = [
     {
@@ -114,7 +115,10 @@ const abi = [
 ]
 
 // const provider = ethers.getDefaultProvider(`https://rinkeby.infura.io/v3/${process.env.INFURA_KEY}`)
-const provider = ethers.getDefaultProvider(`https://polygon-rpc.com`)
+// const provider = ethers.getDefaultProvider(`https://polygon-rpc.com`)
+const provider = ethers.getDefaultProvider(`https://rpc.api.moonbase.moonbeam.network`)
+if (pri === undefined) 
+    throw new Error("No private key found")
 const signer = new ethers.Wallet(pri, provider)
 const contract = new ethers.Contract(c_address, abi, signer);
 

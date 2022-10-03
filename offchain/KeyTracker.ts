@@ -17,8 +17,13 @@ export default class KeyTracker {
         this.name = _name
     }
 
+    static pkhFromPublicKey(pub: PubPair[]): string {
+
+        return hash_b(ethers.utils.solidityPack(['bytes32[2][256]'], [pub])) 
+    }
+
     get pkh () {
-        return hash_b(ethers.utils.solidityPack(['bytes32[2][256]'], [this.currentKeyPair().pub])) 
+        return KeyTracker.pkhFromPublicKey(this.currentKeyPair().pub)
     }
 
     /**

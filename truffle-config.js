@@ -19,9 +19,10 @@
  */
 require('dotenv').config()
 const HDWalletProvider = require('@truffle/hdwallet-provider');
-//
 const fs = require('fs');
+
 const privateKey = fs.readFileSync(".secret").toString().trim();
+
 
 module.exports = {
   /**
@@ -60,14 +61,28 @@ module.exports = {
       provider: () => new HDWalletProvider([privateKey], `https://rinkeby.infura.io/v3/${process.env.INFURA_KEY}`),
       network_id: 4,
       gas: 5500000,
-      confirmations: 2,    // # of confs to wait between deployments. (default: 0)
+      confirmations: 2,   
     },
     polygon: {
       provider: () => new HDWalletProvider([process.env.PRIVATE_KEY_2], `https://polygon-rpc.com`),
       network_id: 137,
       gas: 22000000,
       gasPrice: 50000000000,
-      confirmations: 2,    // # of confs to wait between deployments. (default: 0)
+      confirmations: 2,    
+    },
+    goerli: {
+      network_id: 5,
+      provider: () => new HDWalletProvider([process.env.PRIVATE_KEY_2], `https://goerli.infura.io/v3/${process.env.INFURA_KEY}`),
+      gas: 20000000,
+      confirmations: 2,    
+    },
+    moonbase: {
+      network_id: 1287,
+      // provider: () => new HDWalletProvider([privateKey], `https://rpc.api.moonbase.moonbeam.network`),
+      provider: () => new HDWalletProvider([process.env.PK_PAULI_GROUP_TEST], `https://rpc.api.moonbase.moonbeam.network`),
+      // gas: 15000000,
+      gas: 5000000,
+      confirmations: 1,   
     },
 
     // Another network with more advanced options...
