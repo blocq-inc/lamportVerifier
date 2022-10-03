@@ -12,9 +12,14 @@ abstract contract LamportBase {
         initialized = true;
     }
 
+    // get the current public key hash
+    function getPKH() public view returns (bytes32) {
+        return pkh;
+    }
+
     // lamport 'verify' logic
     function verify_u256(
-        uint256 bits,   
+        uint256 bits,
         bytes[256] calldata sig,
         bytes32[2][256] calldata pub
     ) public pure returns (bool) {

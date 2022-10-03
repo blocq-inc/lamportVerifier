@@ -3,17 +3,16 @@
 ## Explanation
 A library for verifying Lamport Signatures from within an Ethereum EVM smart contract. Written in Solidity. This library is part of an ongoing effort by Pauli Group to ensure that blockchain technology continues to be viable in the face of Quantum Computing.
 
-## Standard Implementation Notes
-- The last function argument MUST be the Lamport Signature
-- The second last function argument MUST be the replacemnt lamport public key 
-- All the other arguments MUST be transformed to bytes using `abi.encodePacked(arg1, arg2, arg3, ...)`
-- These bytes MUST then be hashed using `keccak256(bytes)`
-- The hash MUST then be cast to an `uint256` using `uint256(hash)`
-
 ## Important files:
- 1. LamportLib.sol      - The library that contains the verification logic
- 2. LamportTest.sol     - A simple contract with functionality guarded by a lamport signature
- 3. LamportTest.spec.ts - A test suite for the LamportTest and LamportLib contracts
+1. LamportBase.sol - an abstract contract that contains logic for effective ownership of a contract secured by a Lamport Signature
+2. LamportTest2.sol - a contract that inherits from LamportBase. An example of how to use the library to secure ownership of a contract
+
+## How to use:
+1. Inherit from LamportBase.sol
+2. use the `onlyLamportOwner` modifier on any function that you want to be secured by a Lamport Signature
+3. correctly pass the paramerters to the modifier. Take special note of the fact that all the relevent parameters (except the next pkh) must be combined using abi.encodePacked() before being passed to the modifier. Please look at `broadcastWithNumberAndAddress` in LamportTest2.sol for an example of how to do this.
+4. remember! Any parameters not included in the signed hash would be left vulnrable to quantum attacks and thus could be altered before being written to the blockchain. I recommend that you include all parameters in the signed hash. The modifier will handle packing your `nextPKH` with your already packed parameters before hashing and passing to `verify_u256`. `currentpub` does not need to be signed. It is already secured by the hash `pkh`. 
+
 
 ## To run the tests:
     bash test.sh

@@ -15,10 +15,6 @@ contract LamportTest2 is LamportBase {
     event MessageWithNumber(string message, uint256 number); // admittedly contrived example of how to use lamport system with multiple arguments
     event MessageWithNumberAndAddress(string message, uint256 number, address addr); 
 
-    function getPKH() public view returns (bytes32) {
-        return pkh;
-    }
-
     // publish a signed message to the blockchain ... the message is just text
     function broadcast(
         string memory messageToBroadcast,
