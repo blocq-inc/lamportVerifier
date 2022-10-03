@@ -1,5 +1,6 @@
 import { RandPair, PubPair, LamportKeyPair } from "./Types"
-import {mk_key_pair } from "./functions"
+import {mk_key_pair, hash_b } from "./functions"
+import { ethers } from 'ethers'
 
 // easy key management and generation
 export default class KeyTracker {
@@ -14,6 +15,10 @@ export default class KeyTracker {
      */
     constructor (_name : string = 'default') {
         this.name = _name
+    }
+
+    get pkh () {
+        return hash_b(ethers.utils.solidityPack(['bytes32[2][256]'], [this.currentKeyPair().pub])) 
     }
 
     /**
