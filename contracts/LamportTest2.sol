@@ -2,55 +2,77 @@
 pragma solidity ^0.8.1;
 
 import "./LamportLib.sol";
+import "./LamportBase.sol";
 
-contract LamportTest2 {
+/*
+    @name LamportTest2
+    @description Demonstrate how to use the LamportLib library to verify a signature while only storing the hash of a public key
+    @author William Doyle
+    @date October 3rd 2022
+ */
+contract LamportTest2 is LamportBase {
     event Message(string message);
-
-    bool initialized = false;
-    // bytes32[2][256] publicKey;
-    bytes32 pkh; // lamport public key hash
-
-    // function getPublicKey() public view returns (bytes32[2][256] memory) {
-    //     return publicKey;
-    // }
+    event MessageWithNumber(string message, uint256 number); // admittedly contrived example of how to use lamport system with multiple arguments
+    event MessageWithNumberAndAddress(string message, uint256 number, address addr); 
 
     function getPKH() public view returns (bytes32) {
         return pkh;
     }
 
-    // function init(bytes32[2][256] memory firstPublicKey) public {
-    function init(bytes32 firstPKH) public {
-        require(!initialized, "Already initialized");
-        pkh = firstPKH;
-        initialized = true;
-    }
-
+    // publish a signed message to the blockchain ... the message is just text
     function broadcast(
         string memory messageToBroadcast,
-        bytes32[2][256] memory currentpub,
+        bytes32[2][256] calldata currentpub,
         bytes32 nextPKH,
-        bytes[256] memory sig
-    ) public {
-        require(initialized, "LamportTest2 not initialized");
-
-        // expect that hashing currentpub gives pkh
-        require(
-            keccak256(abi.encodePacked(currentpub)) == pkh,
-            "currentpub does not match known PUBLIC KEY HASH"
-        );
-
-        require(
-            LamportLib.verify_u256(
-                uint256(
-                    keccak256(abi.encodePacked(messageToBroadcast, nextPKH))
-                ),
-                sig,
-                currentpub
-            ),
-            "Lamport Signature not valid"
-        );
-
+        bytes[256] calldata sig
+    )
+        public
+        onlyLamportOwner(
+            currentpub,
+            sig,
+            nextPKH,
+            abi.encodePacked(messageToBroadcast)
+        )
+    {
         emit Message(messageToBroadcast);
-        pkh = nextPKH;
+    }
+
+    // publish a signed message to the blockchain ... the message is text and a number
+    function broadcastWithNumber(
+        string memory messageToBroadcast,
+        uint256 numberToBroadcast,
+        bytes32[2][256] calldata currentpub,
+        bytes32 nextPKH,
+        bytes[256] calldata sig
+    )
+        public
+        onlyLamportOwner(
+            currentpub,
+            sig,
+            nextPKH,
+            abi.encodePacked(messageToBroadcast, numberToBroadcast)
+        )
+    {
+        emit MessageWithNumber(messageToBroadcast, numberToBroadcast);
+    }
+
+    // publish a signed message to the blockchain ... the message is text, a number, and an address
+    function broadcastWithNumberAndAddress(
+        string memory messageToBroadcast,
+        uint256 numberToBroadcast,
+        address addrToBroadcast,
+        bytes32[2][256] calldata currentpub,
+        bytes32 nextPKH,
+        bytes[256] calldata sig
+    )
+        public
+        onlyLamportOwner(
+            currentpub,
+            sig,
+            nextPKH,
+            abi.encodePacked(messageToBroadcast, numberToBroadcast, addrToBroadcast)
+        )
+    {
+        emit MessageWithNumberAndAddress(messageToBroadcast, numberToBroadcast, addrToBroadcast);
     }
 }

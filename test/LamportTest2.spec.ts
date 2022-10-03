@@ -37,7 +37,15 @@ contract('LamportTest2 test', (accounts: string[]) => {
             const nextpkh = KeyTracker.pkhFromPublicKey(next_keys.pub)
 
             const messageToBroadcast = loremIpsum()
-            const packed = ethers.utils.solidityPack(['string', 'bytes32'], [messageToBroadcast, nextpkh])
+            // const packed = ethers.utils.solidityPack(['string', 'bytes32'], [messageToBroadcast, nextpkh])
+
+            const packed_old = ethers.utils.solidityPack(['string', 'bytes32'], [messageToBroadcast, nextpkh])
+            const packed = (() => {
+                const temp = ethers.utils.solidityPack(['string'], [messageToBroadcast])
+                return ethers.utils.solidityPack(['bytes', 'bytes32'], [temp, nextpkh])
+            })()
+            expect(packed).to.deep.equal(packed_old)
+
             const callhash = hash_b(packed)
             const sig = sign_hash(callhash, current_keys.pri)
 
@@ -75,16 +83,15 @@ contract('LamportTest2 test', (accounts: string[]) => {
         fs.writeFileSync('gas_data.json', JSON.stringify(gas_data, null, 2), 'utf8')
     });
 
-    it('can broadcast from any EC wallet so long as we provide valid lamport sig', async () => {
-        console.log(`hash_b(0): ${hash_b('0x00')}`)
+
+
+
+
+
+    it('broadcastWithNumber', async () => {
         const _contract: ethers.Contract = await LamportTest.new()
         const k: KeyTracker = new KeyTracker()
-
         await _contract.init(k.pkh)
-
-        const provider = ethers.getDefaultProvider(`http://127.0.0.1:7545`)
-        const b1 = await provider.getBalance(accounts[0])
-        console.log(`balance before: ${b1.toString()}`)
 
         for (let i = 0; i < ITERATIONS; i++) {
             const current_keys: LamportKeyPair = JSON.parse(JSON.stringify(k.currentKeyPair()))
@@ -98,7 +105,13 @@ contract('LamportTest2 test', (accounts: string[]) => {
             const nextpkh = KeyTracker.pkhFromPublicKey(next_keys.pub)
 
             const messageToBroadcast = loremIpsum()
-            const packed = ethers.utils.solidityPack(['string', 'bytes32'], [messageToBroadcast, nextpkh])
+            const numToBroadcast = Math.floor(Math.random() * 1000000)
+
+            const packed = (() => {
+                const temp = ethers.utils.solidityPack(['string', 'uint256'], [messageToBroadcast, numToBroadcast])
+                return ethers.utils.solidityPack(['bytes', 'bytes32'], [temp, nextpkh])
+            })()
+
             const callhash = hash_b(packed)
             const sig = sign_hash(callhash, current_keys.pri)
 
@@ -107,106 +120,91 @@ contract('LamportTest2 test', (accounts: string[]) => {
 
             console.log(`sig is valid`)
 
-            await _contract.broadcast(
+            await _contract.broadcastWithNumber(
                 messageToBroadcast,
+                numToBroadcast,
                 current_keys.pub,
                 nextpkh,
                 sig.map(s => `0x${s}`),
-                { from: accounts[i % 9] })
+                { from: accounts[0] })
         }
+ 
     })
 
-    it('cannot broadcast if message is altered', async () => {
-        console.log(`hash_b(0): ${hash_b('0x00')}`)
-        const _contract: ethers.Contract = await LamportTest.new()
-        const k: KeyTracker = new KeyTracker()
 
+
+
+
+
+
+
+it ('broadcastWithNumberAndAddress', async () => {
+
+      const _contract: ethers.Contract = await LamportTest.new()
+        const k: KeyTracker = new KeyTracker()
         await _contract.init(k.pkh)
 
-        const provider = ethers.getDefaultProvider(`http://127.0.0.1:7545`)
-        const b1 = await provider.getBalance(accounts[0])
-        console.log(`balance before: ${b1.toString()}`)
+        for (let i = 0; i < ITERATIONS; i++) {
+            const current_keys: LamportKeyPair = JSON.parse(JSON.stringify(k.currentKeyPair()))
+            const next_keys: LamportKeyPair = JSON.parse(JSON.stringify(k.getNextKeyPair()))
 
-        const current_keys: LamportKeyPair = JSON.parse(JSON.stringify(k.currentKeyPair()))
-        const next_keys: LamportKeyPair = JSON.parse(JSON.stringify(k.getNextKeyPair()))
+            {
+                const expectedPKH: LamportKeyPair = await _contract.getPKH()
+                expect(KeyTracker.pkhFromPublicKey(current_keys.pub)).to.deep.equal(expectedPKH)
+            }
 
-        {
-            const expectedPKH: LamportKeyPair = await _contract.getPKH()
-            expect(KeyTracker.pkhFromPublicKey(current_keys.pub)).to.deep.equal(expectedPKH)
+            const nextpkh = KeyTracker.pkhFromPublicKey(next_keys.pub)
+
+            const messageToBroadcast = loremIpsum()
+            const numToBroadcast = Math.floor(Math.random() * 1000000)
+            const addressToBroadcast = accounts[numToBroadcast % accounts.length ] // randomish address
+
+            const packed = (() => {
+                const temp = ethers.utils.solidityPack(['string', 'uint256', 'address'], [messageToBroadcast, numToBroadcast, addressToBroadcast])
+                return ethers.utils.solidityPack(['bytes', 'bytes32'], [temp, nextpkh])
+            })()
+
+            const callhash = hash_b(packed)
+            const sig = sign_hash(callhash, current_keys.pri)
+
+            const is_valid_sig = verify_signed_hash(callhash, sig, current_keys.pub)
+            expect(is_valid_sig).to.be.true
+
+            console.log(`sig is valid`)
+
+            await _contract.broadcastWithNumberAndAddress(
+                messageToBroadcast,
+                numToBroadcast,
+                addressToBroadcast,
+                current_keys.pub,
+                nextpkh,
+                sig.map(s => `0x${s}`),
+                { from: accounts[0] })
         }
 
-        const nextpkh = KeyTracker.pkhFromPublicKey(next_keys.pub)
-
-        const messageToBroadcast = loremIpsum()
-        const packed = ethers.utils.solidityPack(['string', 'bytes32'], [messageToBroadcast, nextpkh])
-        const callhash = hash_b(packed)
-        const sig = sign_hash(callhash, current_keys.pri)
-
-        const is_valid_sig = verify_signed_hash(callhash, sig, current_keys.pub)
-        expect(is_valid_sig).to.be.true
-
-        console.log(`sig is valid`)
-
-        let failed = false
-        await _contract.broadcast(
-            `...${messageToBroadcast}...`,
-            current_keys.pub,
-            nextpkh,
-            sig.map(s => `0x${s}`),
-            { from: accounts[0] })
-            .catch(() => failed = true)
-
-        expect(failed).to.be.true
+    
+})
 
 
-    })
-
-    it('cannot broadcast if signature is altered', async () => {
-        console.log(`hash_b(0): ${hash_b('0x00')}`)
-        const _contract: ethers.Contract = await LamportTest.new()
-        const k: KeyTracker = new KeyTracker()
-
-        await _contract.init(k.pkh)
-
-        const provider = ethers.getDefaultProvider(`http://127.0.0.1:7545`)
-        const b1 = await provider.getBalance(accounts[0])
-        console.log(`balance before: ${b1.toString()}`)
-
-        const current_keys: LamportKeyPair = JSON.parse(JSON.stringify(k.currentKeyPair()))
-        const next_keys: LamportKeyPair = JSON.parse(JSON.stringify(k.getNextKeyPair()))
-
-        {
-            const expectedPKH: LamportKeyPair = await _contract.getPKH()
-            expect(KeyTracker.pkhFromPublicKey(current_keys.pub)).to.deep.equal(expectedPKH)
-        }
-
-        const nextpkh = KeyTracker.pkhFromPublicKey(next_keys.pub)
-
-        const messageToBroadcast = loremIpsum()
-        const packed = ethers.utils.solidityPack(['string', 'bytes32'], [messageToBroadcast, nextpkh])
-        const callhash = hash_b(packed)
-        const sig = sign_hash(callhash, current_keys.pri)
-
-        const is_valid_sig = verify_signed_hash(callhash, sig, current_keys.pub)
-        expect(is_valid_sig).to.be.true
-
-        console.log(`sig is valid`)
-
-        let failed = false
-        await _contract.broadcast(
-            messageToBroadcast,
-            current_keys.pub,
-            nextpkh,
-            sig.map((s, i) => {
-                if (i % 3 === 0)
-                    return `0x${s.split('').reverse().join('')}`
-                return `0x${s}`
-            }),
-            { from: accounts[0] })
-            .catch(() => failed = true)
-
-        expect(failed).to.be.true
 
 
+
+
+
+
+
+
+
+
+
+    it.skip('curious', async () => {
+        const a = ethers.utils.solidityPack(['string', 'string', 'string'], ['a', 'b', 'c'])
+        console.log(a)
+
+        const b = (() => {
+            const temp = ethers.utils.solidityPack(['string'], ['a'])
+            return ethers.utils.solidityPack(['bytes', 'string', 'string'], [temp, 'b', 'c'])
+        })()
+        console.log(b)
     })
 })
